@@ -1,0 +1,139 @@
+package otp
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"os"
+
+	"github.com/pquerna/otp/totp"
+	"go.nhat.io/clock"
+)
+
+// ErrNoTOTPSecret indicates that the user has not configured the TOTP secret.
+var ErrNoTOTPSecret = errors.New("no totp secret")
+
+// NoTOTPSecret is a TOTP secret that is empty.
+const NoTOTPSecret = TOTPSecret("")
+
+// TOTPSecret is a TOTP secret.
+type TOTPSecret string
+
+// TOTPSecret returns the TOTP secret.
+func (t TOTPSecret) TOTPSecret(_ context.Context) TOTPSecret {
+	return t
+}
+
+// TOTPSecretGetSetter is an interface that provides and sets a TOTP secret.
+type TOTPSecretGetSetter interface {
+	TOTPSecretGetter
+	TOTPSecretSetter
+}
+
+// TOTPSecretGetter is an interface that provides a TOTP secret.
+type TOTPSecretGetter interface {
+	TOTPSecret(ctx context.Context) TOTPSecret
+}
+
+// TOTPSecretSetter is an interface that sets a TOTP secret.
+type TOTPSecretSetter interface {
+	SetTOTPSecret(ctx context.Context, secret TOTPSecret) error
+}
+
+// TOTPSecretGetters is a list of TOTP secret getters.
+type TOTPSecretGetters []TOTPSecretGetter
+
+// TOTPSecret returns the first non-empty TOTP secret that it finds from the list of TOTP secret getters.
+func (p TOTPSecretGetters) TOTPSecret(ctx context.Context) TOTPSecret {
+	for _, sp := range p {
+		if s := sp.TOTPSecret(ctx); s != NoTOTPSecret {
+			return s
+		}
+	}
+
+	return NoTOTPSecret
+}
+
+// ChainTOTPSecretGetters chains the TOTP secret getters.
+func ChainTOTPSecretGetters(getters ...TOTPSecretGetter) TOTPSecretGetter {
+	result := make(TOTPSecretGetters, 0, len(getters))
+
+	for _, g := range getters {
+		switch g := g.(type) {
+		case TOTPSecretGetters:
+			result = append(result, g...)
+		case nil:
+			// ignore nil provider
+		default:
+			result = append(result, g)
+		}
+	}
+
+	return result
+}
+
+type totpSecretGetterFunc func(context.Context) TOTPSecret
+
+func (f totpSecretGetterFunc) TOTPSecret(ctx context.Context) TOTPSecret {
+	return f(ctx)
+}
+
+// TOTPSecretFromEnv returns a TOTP secret getter that gets the TOTP secret from the environment.
+func TOTPSecretFromEnv(env string) TOTPSecretGetter {
+	return totpSecretGetterFunc(func(ctx context.Context) TOTPSecret {
+		return TOTPSecret(os.Getenv(env))
+	})
+}
+
+var _ Generator = (*TOTPGenerator)(nil)
+
+// TOTPGenerator is a .TOTPGenerator.
+type TOTPGenerator struct {
+	secretGetter TOTPSecretGetter
+	clock        clock.Clock
+}
+
+// GenerateOTP generates a TOTP.
+func (g *TOTPGenerator) GenerateOTP(ctx context.Context) (OTP, error) {
+	s := g.secretGetter.TOTPSecret(ctx)
+	if s == NoTOTPSecret {
+		return "", fmt.Errorf("could not generate otp: %w", ErrNoTOTPSecret)
+	}
+
+	code, err := totp.GenerateCode(string(s), g.clock.Now())
+	if err != nil {
+		return "", fmt.Errorf("could not generate otp: %w", err)
+	}
+
+	return OTP(code), nil
+}
+
+// NewTOTPGenerator initiates a new .TOTPGenerator.
+func NewTOTPGenerator(secretGetter TOTPSecretGetter, opts ...TOTPGeneratorOption) *TOTPGenerator {
+	g := &TOTPGenerator{
+		secretGetter: secretGetter,
+		clock:        clock.New(),
+	}
+
+	for _, opt := range opts {
+		opt.applyTOTPGeneratorOption(g)
+	}
+
+	return g
+}
+
+// GenerateTOTP generates a TOTP.
+func GenerateTOTP(ctx context.Context, secret TOTPSecretGetter, opts ...TOTPGeneratorOption) (OTP, error) {
+	return NewTOTPGenerator(secret, opts...).GenerateOTP(ctx)
+}
+
+// TOTPGeneratorOption is an option to configure TOTPGenerator.
+type TOTPGeneratorOption interface {
+	applyTOTPGeneratorOption(g *TOTPGenerator)
+}
+
+type totpGeneratorOptionFunc func(g *TOTPGenerator)
+
+func (f totpGeneratorOptionFunc) applyTOTPGeneratorOption(g *TOTPGenerator) {
+	f(g)
+}

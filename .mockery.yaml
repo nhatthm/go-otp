@@ -1,0 +1,11 @@
+dry-run: false
+with-expecter: false
+mockname: "{{.InterfaceName}}"
+filename: "{{ .InterfaceName | snakecase }}.go"
+dir: "{{.InterfaceDir}}/mock"
+outpkg: mock
+packages:
+  go.nhat.io/otp:
+    config:
+      include-regex: ".+"
+      exclude-regex: "Option|.+(Func|Option)"
