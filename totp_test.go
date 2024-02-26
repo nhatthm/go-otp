@@ -15,6 +15,14 @@ import (
 	"go.nhat.io/otp/mock"
 )
 
+func TestTOTPSecret_String(t *testing.T) {
+	t.Parallel()
+
+	s := otp.TOTPSecret("secret")
+
+	assert.Equal(t, "secret", s.String())
+}
+
 func TestTOTPSecret_TOTPSecret(t *testing.T) {
 	t.Parallel()
 

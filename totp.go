@@ -19,9 +19,14 @@ const NoTOTPSecret = TOTPSecret("")
 // TOTPSecret is a TOTP secret.
 type TOTPSecret string
 
+// String returns the TOTP secret as a string.
+func (s TOTPSecret) String() string {
+	return string(s)
+}
+
 // TOTPSecret returns the TOTP secret.
-func (t TOTPSecret) TOTPSecret(_ context.Context) TOTPSecret {
-	return t
+func (s TOTPSecret) TOTPSecret(_ context.Context) TOTPSecret {
+	return s
 }
 
 // TOTPSecretGetSetter is an interface that provides and sets a TOTP secret.
