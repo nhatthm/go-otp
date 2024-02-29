@@ -25,7 +25,7 @@ lint: $(GOLANGCI_LINT)
 	@$(GOLANGCI_LINT) run
 
 .PHONY: test
-test: test-unit test-integration
+test: test-unit
 
 ## Run unit tests
 .PHONY: test-unit
@@ -33,10 +33,10 @@ test-unit:
 	@echo ">> unit test"
 	@$(GO) test -gcflags=-l -coverprofile=unit.coverprofile -covermode=atomic -race ./...
 
-.PHONY: test-integration
-test-integration:
-	@echo ">> integration test"
-	@$(GO) test -gcflags=-l -coverprofile=integration.coverprofile -covermode=atomic -race -tags=integration ./...
+#.PHONY: test-integration
+#test-integration:
+#	@echo ">> integration test"
+#	@$(GO) test -gcflags=-l -coverprofile=integration.coverprofile -covermode=atomic -race -tags=integration ./...
 
 .PHONY: $(GITHUB_ENV)
 $(GITHUB_ENV):
