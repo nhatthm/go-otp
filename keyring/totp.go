@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/bool64/ctxd"
+	"go.nhat.io/secretstorage"
 
 	"go.nhat.io/otp"
 )
@@ -18,7 +19,7 @@ var (
 
 // TOTPSecretGetSetter is a TOTP secret getter and setter that uses the keyring to store the TOTP secret.
 type TOTPSecretGetSetter struct {
-	storage otp.Storage[string]
+	storage secretstorage.Storage[otp.TOTPSecret]
 	logger  ctxd.Logger
 
 	account   string
@@ -38,7 +39,7 @@ func (s *TOTPSecretGetSetter) fetch(ctx context.Context) otp.TOTPSecret {
 		return otp.NoTOTPSecret
 	}
 
-	return otp.TOTPSecret(*secret)
+	return secret
 }
 
 // TOTPSecret returns the TOTP secret from the keyring.
@@ -56,7 +57,7 @@ func (s *TOTPSecretGetSetter) SetTOTPSecret(ctx context.Context, secret otp.TOTP
 		return nil
 	}
 
-	if err := s.storage.Set(keyringServiceTOTP, s.account, string(secret)); err != nil {
+	if err := s.storage.Set(keyringServiceTOTP, s.account, secret); err != nil {
 		s.logger.Error(ctx, "could not persist totp secret to keyring", "error", err, "service", keyringServiceTOTP, "account", s.account)
 
 		return err
@@ -68,7 +69,7 @@ func (s *TOTPSecretGetSetter) SetTOTPSecret(ctx context.Context, secret otp.TOTP
 // TOTPSecretFromKeyring returns a TOTP secret getter and setter that uses the keyring to store the TOTP secret.
 func TOTPSecretFromKeyring(account string, opts ...TOTPSecretGetSetterOption) *TOTPSecretGetSetter {
 	s := &TOTPSecretGetSetter{
-		storage: NewStorage[string](),
+		storage: secretstorage.NewKeyringStorage[otp.TOTPSecret](),
 		logger:  ctxd.NoOpLogger{},
 
 		account: account,
@@ -93,7 +94,7 @@ func (f totpSecretGetSetterOptionFunc) applyTOTPSecretGetSetterOption(s *TOTPSec
 }
 
 // WithStorage sets the storage for the TOTP secret getter and setter.
-func WithStorage(storage otp.Storage[string]) TOTPSecretGetSetterOption {
+func WithStorage(storage secretstorage.Storage[otp.TOTPSecret]) TOTPSecretGetSetterOption {
 	return totpSecretGetSetterOptionFunc(func(s *TOTPSecretGetSetter) {
 		s.storage = storage
 	})

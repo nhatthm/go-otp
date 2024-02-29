@@ -10,10 +10,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+	mockss "go.nhat.io/secretstorage/mock"
 
 	"go.nhat.io/otp"
 	"go.nhat.io/otp/keyring"
-	mockotp "go.nhat.io/otp/mock"
 )
 
 func TestTOTPSecretGetSetter_TOTPSecret(t *testing.T) {
@@ -21,39 +21,39 @@ func TestTOTPSecretGetSetter_TOTPSecret(t *testing.T) {
 
 	testCases := []struct {
 		scenario       string
-		mockStorage    mockotp.StorageMocker[string]
+		mockStorage    mockss.StorageMocker[otp.TOTPSecret]
 		account        string
 		expectedResult otp.TOTPSecret
 	}{
 		{
 			scenario:       "no account",
-			mockStorage:    mockotp.MockStorage[string](),
+			mockStorage:    mockss.MockStorage[otp.TOTPSecret](),
 			account:        "",
 			expectedResult: "",
 		},
 		{
 			scenario: "storage error",
-			mockStorage: mockotp.MockStorage(func(s *mockotp.Storage[string]) {
+			mockStorage: mockss.MockStorage(func(s *mockss.Storage[otp.TOTPSecret]) {
 				s.On("Get", mock.Anything, mock.Anything).
-					Return(nil, assert.AnError)
+					Return(otp.NoTOTPSecret, assert.AnError)
 			}),
 			account:        "account",
 			expectedResult: "",
 		},
 		{
 			scenario: "no secret",
-			mockStorage: mockotp.MockStorage(func(s *mockotp.Storage[string]) {
+			mockStorage: mockss.MockStorage(func(s *mockss.Storage[otp.TOTPSecret]) {
 				s.On("Get", "go.nhat.io/totp", "account").
-					Return(ptr(""), nil)
+					Return(otp.NoTOTPSecret, nil)
 			}),
 			account:        "account",
 			expectedResult: "",
 		},
 		{
 			scenario: "has secret",
-			mockStorage: mockotp.MockStorage(func(s *mockotp.Storage[string]) {
+			mockStorage: mockss.MockStorage(func(s *mockss.Storage[otp.TOTPSecret]) {
 				s.On("Get", "go.nhat.io/totp", "account").
-					Return(ptr("secret"), nil)
+					Return(otp.TOTPSecret("secret"), nil)
 			}),
 			account:        "account",
 			expectedResult: "secret",
@@ -82,18 +82,18 @@ func TestTOTPSecretGetSetter_SetTOTPSecret(t *testing.T) {
 
 	testCases := []struct {
 		scenario      string
-		mockStorage   mockotp.StorageMocker[string]
+		mockStorage   mockss.StorageMocker[otp.TOTPSecret]
 		account       string
 		expectedError string
 	}{
 		{
 			scenario:    "no account",
-			mockStorage: mockotp.MockStorage[string](),
+			mockStorage: mockss.MockStorage[otp.TOTPSecret](),
 			account:     "",
 		},
 		{
 			scenario: "storage error",
-			mockStorage: mockotp.MockStorage(func(s *mockotp.Storage[string]) {
+			mockStorage: mockss.MockStorage(func(s *mockss.Storage[otp.TOTPSecret]) {
 				s.On("Set", mock.Anything, mock.Anything, mock.Anything).
 					Return(assert.AnError)
 			}),
@@ -102,8 +102,8 @@ func TestTOTPSecretGetSetter_SetTOTPSecret(t *testing.T) {
 		},
 		{
 			scenario: "success",
-			mockStorage: mockotp.MockStorage(func(s *mockotp.Storage[string]) {
-				s.On("Set", "go.nhat.io/totp", "account", "secret").
+			mockStorage: mockss.MockStorage(func(s *mockss.Storage[otp.TOTPSecret]) {
+				s.On("Set", "go.nhat.io/totp", "account", otp.TOTPSecret("secret")).
 					Return(nil)
 			}),
 			account: "account",
@@ -129,8 +129,4 @@ func TestTOTPSecretGetSetter_SetTOTPSecret(t *testing.T) {
 			}
 		})
 	}
-}
-
-func ptr[V any](v V) *V {
-	return &v
 }

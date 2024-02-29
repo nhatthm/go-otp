@@ -19,6 +19,18 @@ const NoTOTPSecret = TOTPSecret("")
 // TOTPSecret is a TOTP secret.
 type TOTPSecret string
 
+// MarshalText returns the TOTP secret as text.
+func (s TOTPSecret) MarshalText() ([]byte, error) { //nolint: unparam
+	return []byte(s), nil
+}
+
+// UnmarshalText unmarshals the TOTP secret from text.
+func (s *TOTPSecret) UnmarshalText(text []byte) error { //nolint: unparam
+	*s = TOTPSecret(text)
+
+	return nil
+}
+
 // String returns the TOTP secret as a string.
 func (s TOTPSecret) String() string {
 	return string(s)

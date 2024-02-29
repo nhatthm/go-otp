@@ -15,6 +15,22 @@ import (
 	"go.nhat.io/otp/mock"
 )
 
+func TestTOTPSecret_MarshalText(t *testing.T) {
+	t.Parallel()
+
+	s := otp.TOTPSecret("secret")
+
+	data, err := s.MarshalText()
+	require.NoError(t, err)
+
+	var s2 otp.TOTPSecret
+
+	err = s2.UnmarshalText(data)
+	require.NoError(t, err)
+
+	assert.Equal(t, s, s2)
+}
+
 func TestTOTPSecret_String(t *testing.T) {
 	t.Parallel()
 
