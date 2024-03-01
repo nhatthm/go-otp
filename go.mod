@@ -7,7 +7,7 @@ require (
 	github.com/pquerna/otp v1.4.0
 	github.com/stretchr/testify v1.8.4
 	go.nhat.io/clock v0.7.0
-	go.nhat.io/secretstorage v0.1.0
+	go.nhat.io/secretstorage v0.3.0
 )
 
 require (

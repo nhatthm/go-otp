@@ -36,8 +36,8 @@ github.com/zalando/go-keyring v0.2.3 h1:v9CUu9phlABObO4LPWycf+zwMG7nlbb3t/B5wa97
 github.com/zalando/go-keyring v0.2.3/go.mod h1:HL4k+OXQfJUWaMnqyuSOc0drfGPX2b51Du6K+MRgZMk=
 go.nhat.io/clock v0.7.0 h1:L3t8s+bOqqMXlGcv2qgKhIHBFqYS7rB84gYOHl4F7iA=
 go.nhat.io/clock v0.7.0/go.mod h1:95+ixhxejL/vGxvfiJnrEh19gr03GLyJcTZo7UDr6kA=
-go.nhat.io/secretstorage v0.1.0 h1:ikiuESAAxPC72xWBcLxqZRT5ey1F0nq91+pM3tLhP8M=
-go.nhat.io/secretstorage v0.1.0/go.mod h1:TQZEmClNi2yyt4fTLSq/j8MssmAJZox3AiHKSwk/9hU=
+go.nhat.io/secretstorage v0.3.0 h1:M/5r4rmTA2pdX296qXqUxXj91fT7dAftE0esCdnT90M=
+go.nhat.io/secretstorage v0.3.0/go.mod h1:TQZEmClNi2yyt4fTLSq/j8MssmAJZox3AiHKSwk/9hU=
 go.uber.org/multierr v1.11.0 h1:blXXJkSxSSfBVBlC76pxqeO+LN3aDfLQo+309xJstO0=
 go.uber.org/multierr v1.11.0/go.mod h1:20+QtiLqy0Nd6FdQB9TLXag12DsQkrbs3htMFfDN80Y=
 golang.org/x/sys v0.17.0 h1:25cE3gD+tdBA7lp7QfhuV+rJiE9YXTcS3VG1SqssI/Y=
