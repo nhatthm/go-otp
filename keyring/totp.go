@@ -12,13 +12,10 @@ import (
 
 const keyringServiceTOTP = "go.nhat.io/totp"
 
-var (
-	_ otp.TOTPSecretGetter = (*TOTPSecretGetSetter)(nil)
-	_ otp.TOTPSecretSetter = (*TOTPSecretGetSetter)(nil)
-)
+var _ otp.TOTPSecretProvider = (*TOTPSecretProvider)(nil)
 
-// TOTPSecretGetSetter is a TOTP secret getter and setter that uses the keyring to store the TOTP secret.
-type TOTPSecretGetSetter struct {
+// TOTPSecretProvider is a TOTP secret getter and setter that uses the keyring to store the TOTP secret.
+type TOTPSecretProvider struct {
 	storage secretstorage.Storage[otp.TOTPSecret]
 	logger  ctxd.Logger
 
@@ -27,7 +24,7 @@ type TOTPSecretGetSetter struct {
 	fetchOnce sync.Once
 }
 
-func (s *TOTPSecretGetSetter) fetch(ctx context.Context) otp.TOTPSecret {
+func (s *TOTPSecretProvider) fetch(ctx context.Context) otp.TOTPSecret {
 	if s.account == "" {
 		return otp.NoTOTPSecret
 	}
@@ -43,7 +40,7 @@ func (s *TOTPSecretGetSetter) fetch(ctx context.Context) otp.TOTPSecret {
 }
 
 // TOTPSecret returns the TOTP secret from the keyring.
-func (s *TOTPSecretGetSetter) TOTPSecret(ctx context.Context) otp.TOTPSecret {
+func (s *TOTPSecretProvider) TOTPSecret(ctx context.Context) otp.TOTPSecret {
 	s.fetchOnce.Do(func() {
 		s.secret = s.fetch(ctx)
 	})
@@ -52,7 +49,7 @@ func (s *TOTPSecretGetSetter) TOTPSecret(ctx context.Context) otp.TOTPSecret {
 }
 
 // SetTOTPSecret persists the TOTP secret to the keyring.
-func (s *TOTPSecretGetSetter) SetTOTPSecret(ctx context.Context, secret otp.TOTPSecret) error {
+func (s *TOTPSecretProvider) SetTOTPSecret(ctx context.Context, secret otp.TOTPSecret) error {
 	if s.account == "" {
 		return nil
 	}
@@ -66,9 +63,24 @@ func (s *TOTPSecretGetSetter) SetTOTPSecret(ctx context.Context, secret otp.TOTP
 	return nil
 }
 
+// DeleteTOTPSecret deletes the TOTP secret in the keyring.
+func (s *TOTPSecretProvider) DeleteTOTPSecret(ctx context.Context) error {
+	if s.account == "" {
+		return nil
+	}
+
+	if err := s.storage.Delete(keyringServiceTOTP, s.account); err != nil {
+		s.logger.Error(ctx, "could not delete totp secret in keyring", "error", err, "service", keyringServiceTOTP, "account", s.account)
+
+		return err
+	}
+
+	return nil
+}
+
 // TOTPSecretFromKeyring returns a TOTP secret getter and setter that uses the keyring to store the TOTP secret.
-func TOTPSecretFromKeyring(account string, opts ...TOTPSecretGetSetterOption) *TOTPSecretGetSetter {
-	s := &TOTPSecretGetSetter{
+func TOTPSecretFromKeyring(account string, opts ...TOTPSecretProviderOption) *TOTPSecretProvider {
+	s := &TOTPSecretProvider{
 		storage: secretstorage.NewKeyringStorage[otp.TOTPSecret](),
 		logger:  ctxd.NoOpLogger{},
 
@@ -82,20 +94,20 @@ func TOTPSecretFromKeyring(account string, opts ...TOTPSecretGetSetterOption) *T
 	return s
 }
 
-// TOTPSecretGetSetterOption is an option to configure TOTPSecretGetSetter.
-type TOTPSecretGetSetterOption interface {
-	applyTOTPSecretGetSetterOption(s *TOTPSecretGetSetter)
+// TOTPSecretProviderOption is an option to configure TOTPSecretProvider.
+type TOTPSecretProviderOption interface {
+	applyTOTPSecretGetSetterOption(s *TOTPSecretProvider)
 }
 
-type totpSecretGetSetterOptionFunc func(s *TOTPSecretGetSetter)
+type totpSecretProviderOptionFunc func(s *TOTPSecretProvider)
 
-func (f totpSecretGetSetterOptionFunc) applyTOTPSecretGetSetterOption(s *TOTPSecretGetSetter) {
+func (f totpSecretProviderOptionFunc) applyTOTPSecretGetSetterOption(s *TOTPSecretProvider) {
 	f(s)
 }
 
 // WithStorage sets the storage for the TOTP secret getter and setter.
-func WithStorage(storage secretstorage.Storage[otp.TOTPSecret]) TOTPSecretGetSetterOption {
-	return totpSecretGetSetterOptionFunc(func(s *TOTPSecretGetSetter) {
+func WithStorage(storage secretstorage.Storage[otp.TOTPSecret]) TOTPSecretProviderOption {
+	return totpSecretProviderOptionFunc(func(s *TOTPSecretProvider) {
 		s.storage = storage
 	})
 }

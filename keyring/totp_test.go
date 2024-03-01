@@ -16,7 +16,7 @@ import (
 	"go.nhat.io/otp/keyring"
 )
 
-func TestTOTPSecretGetSetter_TOTPSecret(t *testing.T) {
+func TestTOTPSecretProvider_TOTPSecret(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -77,7 +77,7 @@ func TestTOTPSecretGetSetter_TOTPSecret(t *testing.T) {
 	}
 }
 
-func TestTOTPSecretGetSetter_SetTOTPSecret(t *testing.T) {
+func TestTOTPSecretProvider_SetTOTPSecret(t *testing.T) {
 	t.Parallel()
 
 	testCases := []struct {
@@ -121,6 +121,60 @@ func TestTOTPSecretGetSetter_SetTOTPSecret(t *testing.T) {
 			)
 
 			err := s.SetTOTPSecret(context.Background(), "secret")
+
+			if tc.expectedError == "" {
+				require.NoError(t, err)
+			} else {
+				require.EqualError(t, err, tc.expectedError)
+			}
+		})
+	}
+}
+
+func TestTOTPSecretProvider_DeleteTOTPSecret(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		scenario      string
+		mockStorage   mockss.StorageMocker[otp.TOTPSecret]
+		account       string
+		expectedError string
+	}{
+		{
+			scenario:    "no account",
+			mockStorage: mockss.MockStorage[otp.TOTPSecret](),
+			account:     "",
+		},
+		{
+			scenario: "storage error",
+			mockStorage: mockss.MockStorage(func(s *mockss.Storage[otp.TOTPSecret]) {
+				s.On("Delete", mock.Anything, mock.Anything).
+					Return(assert.AnError)
+			}),
+			account:       "account",
+			expectedError: "assert.AnError general error for testing",
+		},
+		{
+			scenario: "success",
+			mockStorage: mockss.MockStorage(func(s *mockss.Storage[otp.TOTPSecret]) {
+				s.On("Delete", "go.nhat.io/totp", "account").
+					Return(nil)
+			}),
+			account: "account",
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.scenario, func(t *testing.T) {
+			t.Parallel()
+
+			s := keyring.TOTPSecretFromKeyring(tc.account,
+				keyring.WithStorage(tc.mockStorage(t)),
+				keyring.WithLogger(ctxd.NoOpLogger{}),
+			)
+
+			err := s.DeleteTOTPSecret(context.Background())
 
 			if tc.expectedError == "" {
 				require.NoError(t, err)

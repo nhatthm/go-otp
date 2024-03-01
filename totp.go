@@ -41,10 +41,11 @@ func (s TOTPSecret) TOTPSecret(_ context.Context) TOTPSecret {
 	return s
 }
 
-// TOTPSecretGetSetter is an interface that provides and sets a TOTP secret.
-type TOTPSecretGetSetter interface {
+// TOTPSecretProvider is an interface that manages a TOTP secret.
+type TOTPSecretProvider interface {
 	TOTPSecretGetter
 	TOTPSecretSetter
+	TOTPSecretDeleter
 }
 
 // TOTPSecretGetter is an interface that provides a TOTP secret.
@@ -55,6 +56,11 @@ type TOTPSecretGetter interface {
 // TOTPSecretSetter is an interface that sets a TOTP secret.
 type TOTPSecretSetter interface {
 	SetTOTPSecret(ctx context.Context, secret TOTPSecret) error
+}
+
+// TOTPSecretDeleter is an interface that deletes a TOTP secret.
+type TOTPSecretDeleter interface {
+	DeleteTOTPSecret(ctx context.Context) error
 }
 
 // TOTPSecretGetters is a list of TOTP secret getters.
