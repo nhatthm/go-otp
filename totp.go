@@ -10,6 +10,9 @@ import (
 	"go.nhat.io/clock"
 )
 
+// ErrTOTPSecretReadOnly indicates that the TOTP secret is read-only.
+var ErrTOTPSecretReadOnly = errors.New("totp secret is read-only")
+
 // ErrNoTOTPSecret indicates that the user has not configured the TOTP secret.
 var ErrNoTOTPSecret = errors.New("no totp secret")
 
@@ -37,8 +40,41 @@ func (s TOTPSecret) String() string {
 }
 
 // TOTPSecret returns the TOTP secret.
-func (s TOTPSecret) TOTPSecret(_ context.Context) TOTPSecret {
+func (s TOTPSecret) TOTPSecret(context.Context) TOTPSecret {
 	return s
+}
+
+// SetTOTPSecret sets the TOTP secret.
+func (s TOTPSecret) SetTOTPSecret(context.Context, TOTPSecret) error {
+	return ErrTOTPSecretReadOnly
+}
+
+// DeleteTOTPSecret deletes the TOTP secret.
+func (s TOTPSecret) DeleteTOTPSecret(context.Context) error {
+	return ErrTOTPSecretReadOnly
+}
+
+type totpSecreteSurrogate struct {
+	secret TOTPSecret
+}
+
+// TOTPSecret returns the TOTP secret.
+func (s totpSecreteSurrogate) TOTPSecret(context.Context) TOTPSecret {
+	return s.secret
+}
+
+// SetTOTPSecret sets the TOTP secret.
+func (s *totpSecreteSurrogate) SetTOTPSecret(_ context.Context, secret TOTPSecret) error {
+	s.secret = secret
+
+	return nil
+}
+
+// DeleteTOTPSecret deletes the TOTP secret.
+func (s *totpSecreteSurrogate) DeleteTOTPSecret(context.Context) error {
+	s.secret = NoTOTPSecret
+
+	return nil
 }
 
 // TOTPSecretProvider is an interface that manages a TOTP secret.
@@ -83,10 +119,64 @@ func ChainTOTPSecretGetters(getters ...TOTPSecretGetter) TOTPSecretGetter {
 
 	for _, g := range getters {
 		switch g := g.(type) {
+		case nil:
 		case TOTPSecretGetters:
 			result = append(result, g...)
+		default:
+			result = append(result, g)
+		}
+	}
+
+	return result
+}
+
+// TOTPSecretProviders is a list of TOTP secret getters.
+type TOTPSecretProviders []TOTPSecretProvider
+
+// TOTPSecret returns the first non-empty TOTP secret that it finds from the list of TOTP secret getters.
+func (ps TOTPSecretProviders) TOTPSecret(ctx context.Context) TOTPSecret {
+	for _, p := range ps {
+		if s := p.TOTPSecret(ctx); s != NoTOTPSecret {
+			return s
+		}
+	}
+
+	return NoTOTPSecret
+}
+
+// SetTOTPSecret sets the TOTP secret.
+func (ps TOTPSecretProviders) SetTOTPSecret(ctx context.Context, secret TOTPSecret) error {
+	for _, p := range ps {
+		if err := p.SetTOTPSecret(ctx, secret); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// DeleteTOTPSecret deletes the TOTP secret.
+func (ps TOTPSecretProviders) DeleteTOTPSecret(ctx context.Context) error {
+	for _, p := range ps {
+		if err := p.DeleteTOTPSecret(ctx); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// ChainTOTPSecretProviders chains the TOTP secret providers.
+func ChainTOTPSecretProviders(providers ...TOTPSecretProvider) TOTPSecretProviders {
+	result := make(TOTPSecretProviders, 0, len(providers))
+
+	for _, p := range providers {
+		switch g := p.(type) {
 		case nil:
-			// ignore nil provider
+		case TOTPSecret:
+			result = append(result, &totpSecreteSurrogate{g})
+		case TOTPSecretProviders:
+			result = append(result, g...)
 		default:
 			result = append(result, g)
 		}
