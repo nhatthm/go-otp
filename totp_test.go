@@ -56,9 +56,20 @@ func TestNoTOTPSecret(t *testing.T) {
 func TestTOTPSecretFromEnv(t *testing.T) {
 	t.Setenv(t.Name(), "secret")
 
+	ctx := context.Background()
 	p := otp.TOTPSecretFromEnv(t.Name())
 
-	assert.Equal(t, "secret", string(p.TOTPSecret(context.Background())))
+	assert.Equal(t, "secret", string(p.TOTPSecret(ctx)))
+
+	err := p.SetTOTPSecret(ctx, "changed")
+	require.NoError(t, err)
+
+	assert.Equal(t, "changed", string(p.TOTPSecret(ctx)))
+
+	err = p.DeleteTOTPSecret(ctx)
+	require.NoError(t, err)
+
+	assert.Empty(t, string(p.TOTPSecret(ctx)))
 }
 
 func TestChainTOTPSecretGetters_HasSecret(t *testing.T) {
