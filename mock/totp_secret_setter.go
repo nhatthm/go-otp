@@ -14,17 +14,17 @@ type TOTPSecretSetter struct {
 	mock.Mock
 }
 
-// SetTOTPSecret provides a mock function with given fields: ctx, secret
-func (_m *TOTPSecretSetter) SetTOTPSecret(ctx context.Context, secret otp.TOTPSecret) error {
-	ret := _m.Called(ctx, secret)
+// SetTOTPSecret provides a mock function with given fields: ctx, secret, issuer
+func (_m *TOTPSecretSetter) SetTOTPSecret(ctx context.Context, secret otp.TOTPSecret, issuer string) error {
+	ret := _m.Called(ctx, secret, issuer)
 
 	if len(ret) == 0 {
 		panic("no return value specified for SetTOTPSecret")
 	}
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, otp.TOTPSecret) error); ok {
-		r0 = rf(ctx, secret)
+	if rf, ok := ret.Get(0).(func(context.Context, otp.TOTPSecret, string) error); ok {
+		r0 = rf(ctx, secret, issuer)
 	} else {
 		r0 = ret.Error(0)
 	}

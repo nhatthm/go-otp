@@ -120,7 +120,7 @@ func TestTOTPSecretProvider_SetTOTPSecret(t *testing.T) {
 				keyring.WithLogger(ctxd.NoOpLogger{}),
 			)
 
-			err := s.SetTOTPSecret(context.Background(), "secret")
+			err := s.SetTOTPSecret(context.Background(), "secret", "issuer")
 
 			if tc.expectedError == "" {
 				require.NoError(t, err)

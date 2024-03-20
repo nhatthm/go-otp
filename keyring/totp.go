@@ -49,7 +49,7 @@ func (s *TOTPSecretProvider) TOTPSecret(ctx context.Context) otp.TOTPSecret {
 }
 
 // SetTOTPSecret persists the TOTP secret to the keyring.
-func (s *TOTPSecretProvider) SetTOTPSecret(ctx context.Context, secret otp.TOTPSecret) error {
+func (s *TOTPSecretProvider) SetTOTPSecret(ctx context.Context, secret otp.TOTPSecret, _ string) error {
 	if s.account == "" {
 		return nil
 	}
