@@ -47,7 +47,7 @@ func TestTOTPSecret_TOTPSecret(t *testing.T) {
 
 	assert.Equal(t, "secret", string(p.TOTPSecret(ctx)))
 
-	err := p.SetTOTPSecret(ctx, "changed")
+	err := p.SetTOTPSecret(ctx, "changed", "")
 	require.ErrorIs(t, err, otp.ErrTOTPSecretReadOnly)
 
 	assert.Equal(t, "secret", string(p.TOTPSecret(ctx)))
@@ -72,7 +72,7 @@ func TestTOTPSecretFromEnv(t *testing.T) {
 
 	assert.Equal(t, "secret", string(p.TOTPSecret(ctx)))
 
-	err := p.SetTOTPSecret(ctx, "changed")
+	err := p.SetTOTPSecret(ctx, "changed", "")
 	require.NoError(t, err)
 
 	assert.Equal(t, "changed", string(p.TOTPSecret(ctx)))
@@ -140,7 +140,7 @@ func TestChainTOTPSecretProviders_SetSecret(t *testing.T) {
 		{
 			scenario: "failed",
 			mockProvider: mock.MockTOTPSecretProvider(func(p *mock.TOTPSecretProvider) {
-				p.On("SetTOTPSecret", mock.Anything, otp.TOTPSecret("secret")).
+				p.On("SetTOTPSecret", mock.Anything, otp.TOTPSecret("secret"), "issuer").
 					Return(assert.AnError)
 			}),
 			expectedError: `assert.AnError general error for testing`,
@@ -148,7 +148,7 @@ func TestChainTOTPSecretProviders_SetSecret(t *testing.T) {
 		{
 			scenario: "readonly",
 			mockProvider: mock.MockTOTPSecretProvider(func(p *mock.TOTPSecretProvider) {
-				p.On("SetTOTPSecret", mock.Anything, otp.TOTPSecret("secret")).
+				p.On("SetTOTPSecret", mock.Anything, otp.TOTPSecret("secret"), "issuer").
 					Return(otp.ErrTOTPSecretReadOnly)
 			}),
 			expectedError: `totp secret is read-only`,
@@ -156,7 +156,7 @@ func TestChainTOTPSecretProviders_SetSecret(t *testing.T) {
 		{
 			scenario: "success",
 			mockProvider: mock.MockTOTPSecretProvider(func(p *mock.TOTPSecretProvider) {
-				p.On("SetTOTPSecret", mock.Anything, otp.TOTPSecret("secret")).
+				p.On("SetTOTPSecret", mock.Anything, otp.TOTPSecret("secret"), "issuer").
 					Return(nil)
 			}),
 		},
@@ -169,7 +169,7 @@ func TestChainTOTPSecretProviders_SetSecret(t *testing.T) {
 
 			p := otp.ChainTOTPSecretProviders(tc.mockProvider(t))
 
-			err := p.SetTOTPSecret(context.Background(), "secret")
+			err := p.SetTOTPSecret(context.Background(), "secret", "issuer")
 
 			if tc.expectedError == "" {
 				require.NoError(t, err)
@@ -245,7 +245,7 @@ func TestChainTOTPSecretProviders(t *testing.T) { //nolint: paralleltest
 
 	assert.Equal(t, "secret", string(p.TOTPSecret(ctx)))
 
-	err := p.SetTOTPSecret(ctx, "changed")
+	err := p.SetTOTPSecret(ctx, "changed", "")
 	require.NoError(t, err)
 
 	// Change secret.

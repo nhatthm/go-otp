@@ -45,7 +45,7 @@ func (s TOTPSecret) TOTPSecret(context.Context) TOTPSecret {
 }
 
 // SetTOTPSecret sets the TOTP secret.
-func (s TOTPSecret) SetTOTPSecret(context.Context, TOTPSecret) error {
+func (s TOTPSecret) SetTOTPSecret(context.Context, TOTPSecret, string) error {
 	return ErrTOTPSecretReadOnly
 }
 
@@ -64,7 +64,7 @@ func (s totpSecreteSurrogate) TOTPSecret(context.Context) TOTPSecret {
 }
 
 // SetTOTPSecret sets the TOTP secret.
-func (s *totpSecreteSurrogate) SetTOTPSecret(_ context.Context, secret TOTPSecret) error {
+func (s *totpSecreteSurrogate) SetTOTPSecret(_ context.Context, secret TOTPSecret, _ string) error {
 	s.secret = secret
 
 	return nil
@@ -91,7 +91,7 @@ type TOTPSecretGetter interface {
 
 // TOTPSecretSetter is an interface that sets a TOTP secret.
 type TOTPSecretSetter interface {
-	SetTOTPSecret(ctx context.Context, secret TOTPSecret) error
+	SetTOTPSecret(ctx context.Context, secret TOTPSecret, issuer string) error
 }
 
 // TOTPSecretDeleter is an interface that deletes a TOTP secret.
@@ -145,9 +145,9 @@ func (ps TOTPSecretProviders) TOTPSecret(ctx context.Context) TOTPSecret {
 }
 
 // SetTOTPSecret sets the TOTP secret.
-func (ps TOTPSecretProviders) SetTOTPSecret(ctx context.Context, secret TOTPSecret) error {
+func (ps TOTPSecretProviders) SetTOTPSecret(ctx context.Context, secret TOTPSecret, issuer string) error {
 	for _, p := range ps {
-		if err := p.SetTOTPSecret(ctx, secret); err != nil {
+		if err := p.SetTOTPSecret(ctx, secret, issuer); err != nil {
 			return err
 		}
 	}
@@ -195,7 +195,7 @@ func (e envTOTPSecret) TOTPSecret(_ context.Context) TOTPSecret {
 }
 
 // SetTOTPSecret sets the TOTP secret to the environment.
-func (e envTOTPSecret) SetTOTPSecret(_ context.Context, secret TOTPSecret) error {
+func (e envTOTPSecret) SetTOTPSecret(_ context.Context, secret TOTPSecret, _ string) error {
 	return os.Setenv(string(e), string(secret))
 }
 
