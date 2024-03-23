@@ -54,6 +54,11 @@ func (s TOTPSecret) DeleteTOTPSecret(context.Context) error {
 	return ErrTOTPSecretReadOnly
 }
 
+// TOTPSecretGetter returns TOTPSecretGetter.
+func (s TOTPSecret) TOTPSecretGetter() TOTPSecretGetter {
+	return s
+}
+
 type totpSecreteSurrogate struct {
 	secret TOTPSecret
 }
@@ -113,8 +118,13 @@ func (p TOTPSecretGetters) TOTPSecret(ctx context.Context) TOTPSecret {
 	return NoTOTPSecret
 }
 
+// TOTPSecretGetter returns TOTPSecretGetter.
+func (p TOTPSecretGetters) TOTPSecretGetter() TOTPSecretGetter {
+	return p
+}
+
 // ChainTOTPSecretGetters chains the TOTP secret getters.
-func ChainTOTPSecretGetters(getters ...TOTPSecretGetter) TOTPSecretGetter {
+func ChainTOTPSecretGetters(getters ...TOTPSecretGetter) TOTPSecretGetters {
 	result := make(TOTPSecretGetters, 0, len(getters))
 
 	for _, g := range getters {
@@ -166,6 +176,21 @@ func (ps TOTPSecretProviders) DeleteTOTPSecret(ctx context.Context) error {
 	return nil
 }
 
+// TOTPSecretGetter returns TOTPSecretGetter.
+func (ps TOTPSecretProviders) TOTPSecretGetter() TOTPSecretGetter {
+	return ps
+}
+
+// TOTPSecretSetter returns TOTPSecretSetter.
+func (ps TOTPSecretProviders) TOTPSecretSetter() TOTPSecretSetter {
+	return ps
+}
+
+// TOTPSecretDeleter returns TOTPSecretDeleter.
+func (ps TOTPSecretProviders) TOTPSecretDeleter() TOTPSecretDeleter {
+	return ps
+}
+
 // ChainTOTPSecretProviders chains the TOTP secret providers.
 func ChainTOTPSecretProviders(providers ...TOTPSecretProvider) TOTPSecretProviders {
 	result := make(TOTPSecretProviders, 0, len(providers))
@@ -185,28 +210,48 @@ func ChainTOTPSecretProviders(providers ...TOTPSecretProvider) TOTPSecretProvide
 	return result
 }
 
-var _ TOTPSecretProvider = (*envTOTPSecret)(nil)
+var _ TOTPSecretProvider = (*EnvTOTPSecret)(nil)
 
-type envTOTPSecret string
+// EnvTOTPSecret is a TOTP secret provider that gets the TOTP secret from the environment.
+type EnvTOTPSecret struct {
+	env string
+}
 
 // TOTPSecret returns the TOTP secret from the environment.
-func (e envTOTPSecret) TOTPSecret(_ context.Context) TOTPSecret {
-	return TOTPSecret(os.Getenv(string(e)))
+func (e EnvTOTPSecret) TOTPSecret(_ context.Context) TOTPSecret {
+	return TOTPSecret(os.Getenv(e.env))
 }
 
 // SetTOTPSecret sets the TOTP secret to the environment.
-func (e envTOTPSecret) SetTOTPSecret(_ context.Context, secret TOTPSecret, _ string) error {
-	return os.Setenv(string(e), string(secret))
+func (e EnvTOTPSecret) SetTOTPSecret(_ context.Context, secret TOTPSecret, _ string) error {
+	return os.Setenv(e.env, string(secret))
 }
 
 // DeleteTOTPSecret deletes the TOTP secret from the environment.
-func (e envTOTPSecret) DeleteTOTPSecret(_ context.Context) error {
-	return os.Unsetenv(string(e))
+func (e EnvTOTPSecret) DeleteTOTPSecret(_ context.Context) error {
+	return os.Unsetenv(e.env)
+}
+
+// TOTPSecretGetter returns TOTPSecretGetter.
+func (e EnvTOTPSecret) TOTPSecretGetter() TOTPSecretGetter {
+	return e
+}
+
+// TOTPSecretSetter returns TOTPSecretSetter.
+func (e EnvTOTPSecret) TOTPSecretSetter() TOTPSecretSetter {
+	return e
+}
+
+// TOTPSecretDeleter returns TOTPSecretDeleter.
+func (e EnvTOTPSecret) TOTPSecretDeleter() TOTPSecretDeleter {
+	return e
 }
 
 // TOTPSecretFromEnv returns a TOTP secret getter that gets the TOTP secret from the environment.
-func TOTPSecretFromEnv(env string) TOTPSecretProvider {
-	return envTOTPSecret(env)
+func TOTPSecretFromEnv(env string) EnvTOTPSecret {
+	return EnvTOTPSecret{
+		env: env,
+	}
 }
 
 var _ Generator = (*TOTPGenerator)(nil)
