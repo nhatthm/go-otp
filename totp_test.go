@@ -58,10 +58,19 @@ func TestTOTPSecret_TOTPSecret(t *testing.T) {
 	assert.Equal(t, "secret", string(p.TOTPSecret(ctx)))
 }
 
+func TestTOTPSecret_TOTPSecretGetter(t *testing.T) {
+	t.Parallel()
+
+	s := otp.TOTPSecret("secret")
+
+	assert.Equal(t, s, s.TOTPSecretGetter())
+}
+
 func TestNoTOTPSecret(t *testing.T) {
 	t.Parallel()
 
 	assert.Empty(t, otp.NoTOTPSecret.TOTPSecret(context.Background()))
+	assert.Empty(t, otp.NoTOTPSecret, otp.NoTOTPSecret.TOTPSecretGetter())
 }
 
 func TestTOTPSecretFromEnv(t *testing.T) {
@@ -81,6 +90,10 @@ func TestTOTPSecretFromEnv(t *testing.T) {
 	require.NoError(t, err)
 
 	assert.Empty(t, string(p.TOTPSecret(ctx)))
+
+	assert.Equal(t, p, p.TOTPSecretGetter())
+	assert.Equal(t, p, p.TOTPSecretSetter())
+	assert.Equal(t, p, p.TOTPSecretDeleter())
 }
 
 func TestChainTOTPSecretGetters_HasSecret(t *testing.T) {
@@ -95,6 +108,7 @@ func TestChainTOTPSecretGetters_HasSecret(t *testing.T) {
 	)
 
 	assert.Equal(t, "secret", string(p.TOTPSecret(context.Background())))
+	assert.Equal(t, p, p.TOTPSecretGetter())
 }
 
 func TestChainTOTPSecretGetters_NoSecret(t *testing.T) {
@@ -242,6 +256,10 @@ func TestChainTOTPSecretProviders(t *testing.T) { //nolint: paralleltest
 
 	ctx := context.Background()
 	p := otp.ChainTOTPSecretProviders(providers...)
+
+	assert.Equal(t, p, p.TOTPSecretGetter())
+	assert.Equal(t, p, p.TOTPSecretSetter())
+	assert.Equal(t, p, p.TOTPSecretDeleter())
 
 	assert.Equal(t, "secret", string(p.TOTPSecret(ctx)))
 
