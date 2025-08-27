@@ -5,7 +5,7 @@ go 1.23.0
 require (
 	github.com/bool64/ctxd v1.2.1
 	github.com/pquerna/otp v1.5.0
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	go.nhat.io/clock v0.7.0
 	go.nhat.io/secretstorage v0.5.0
 )
