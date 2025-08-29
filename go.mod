@@ -7,7 +7,7 @@ require (
 	github.com/pquerna/otp v1.5.0
 	github.com/stretchr/testify v1.11.1
 	go.nhat.io/clock v0.7.0
-	go.nhat.io/secretstorage v0.5.0
+	go.nhat.io/secretstorage v0.6.0
 )
 
 require (
@@ -22,6 +22,6 @@ require (
 	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/zalando/go-keyring v0.2.6 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
-	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/sys v0.35.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
