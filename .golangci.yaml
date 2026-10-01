@@ -3,15 +3,18 @@ run:
   build-tags:
     - integration
   tests: true
+  allow-parallel-runners: true
 linters:
   default: all
   disable:
     - depguard
     - exhaustruct
+    - exhaustruct_v5
     - forbidigo
     - forcetypeassert
     - funcorder
     - gochecknoglobals
+    - gomodguard
     - iface
     - ireturn
     - lll

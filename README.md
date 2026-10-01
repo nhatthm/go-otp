@@ -3,15 +3,14 @@
 [![GitHub Releases](https://img.shields.io/github/v/release/nhatthm/go-otp)](https://github.com/nhatthm/go-otp/releases/latest)
 [![Build Status](https://github.com/nhatthm/go-otp/actions/workflows/test.yaml/badge.svg)](https://github.com/nhatthm/go-otp/actions/workflows/test.yaml)
 [![codecov](https://codecov.io/gh/nhatthm/go-otp/branch/master/graph/badge.svg?token=eTdAgDE2vR)](https://codecov.io/gh/nhatthm/go-otp)
-[![Go Report Card](https://goreportcard.com/badge/go.nhat.io/otp)](https://goreportcard.com/report/go.nhat.io/otp)
 [![GoDevDoc](https://img.shields.io/badge/dev-doc-00ADD8?logo=go)](https://pkg.go.dev/go.nhat.io/otp)
-[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg)](https://www.paypal.com/donate/?hosted_button_id=PJZSGJN57TDJY)
+[![Donate](https://img.shields.io/badge/%20-Donate-%20?style=flat&logo=githubsponsors&color=E5E4E2)](http://donate.nhat.me)
 
 Manage and generate one-time passwords.
 
 ## Prerequisites
 
-- `Go >= 1.23`
+- `Go >= 1.25`
 
 ### Keyring (Optional)
 
@@ -91,14 +90,12 @@ func do(ctx context.Context) {
 
 ## Donation
 
-If this project help you reduce time to develop, you can give me a cup of coffee :)
+If this project saved you some development time, buy me a cup of coffee :)
 
-### Paypal donation
-
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/donate/?hosted_button_id=PJZSGJN57TDJY)
+[![donate](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](http://donate.nhat.me)
 
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;or scan this
 
-<img src="https://user-images.githubusercontent.com/1154587/113494222-ad8cb200-94e6-11eb-9ef3-eb883ada222a.png" width="147px" />
+<img src="https://github.com/nhatthm/donate.nhat.me/blob/master/images/qr_sponsor.png" width="147px" />
 
-[SecretService]: https://specifications.freedesktop.org/secret-service/latest/
+[<sub><sup>[table of contents]</sup></sub>](#table-of-contents)
