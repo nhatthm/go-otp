@@ -1,11 +1,12 @@
-dry-run: false
-with-expecter: false
-mockname: "{{.InterfaceName}}"
+dir: '{{.InterfaceDir}}/mock'
+structname: '{{.InterfaceName}}'
 filename: "{{ .InterfaceName | snakecase }}.go"
-dir: "{{.InterfaceDir}}/mock"
-outpkg: mock
+pkgname: mock
+template: "https://raw.githubusercontent.com/nhatthm/mockery-template/0.3.0/templates/testify-mocker.templ"
+template-data:
+  unroll-variadic: true
 packages:
   go.nhat.io/otp:
     config:
-      include-regex: ".+"
-      exclude-regex: "Option|.+(Func|Option)"
+      exclude-interface-regex: Option|.+(Func|Option)
+      include-interface-regex: .+
