@@ -6,7 +6,7 @@ require (
 	github.com/bool64/ctxd v1.2.1
 	github.com/pquerna/otp v1.5.0
 	github.com/stretchr/testify v1.12.1
-	go.nhat.io/clock v0.8.0
+	go.nhat.io/clock v0.8.1
 	go.nhat.io/secretstorage v0.7.1
 )
 
